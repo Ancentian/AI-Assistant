@@ -12,7 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(null);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("chatHistory"));
@@ -38,12 +38,11 @@ export default function Home() {
         body: JSON.stringify({ question }),
       });
       const data = await res.json();
+
       if (res.ok) {
         setAnswer(data.answer);
-        setHistory((prev) => [...prev, { 
-          question, 
-          answer: data.answer 
-        }]); 
+        setHistory((prev) => [...prev, { question, answer: data.answer }]);
+        setQuestion("");
       } else {
         setError(data.detail || "Something went wrong.");
         toast.error(data.detail || "Something went wrong.");
@@ -61,84 +60,92 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100 p-4">
+    <div className="flex h-screen bg-gray-100">
       <Toaster position="top-right" />
 
-      <div className="max-w-2xl w-full bg-white p-8 rounded-lg shadow-lg mb-4">
-        <h1 className="text-2xl font-bold text-center mb-6">Ancent Mbithi AI Assistant </h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <textarea
-            className="w-full p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-            rows="4"
-            placeholder="Ask your question..."
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            required
-          ></textarea>
+      {/* Sidebar */}
+      <div className="w-64 bg-white p-4 shadow-md flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">History</h2>
           <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-            disabled={loading}
+            onClick={handleClearHistory}
+            className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
           >
-            {loading ? <LoadingSpinner /> : "Ask"}
+            Clear
           </button>
-        </form>
+        </div>
 
-        {/* Latest Answer */}
-        {answer && (
-          <div className="mt-6 p-4 bg-green-100 rounded-md">
-            <h2 className="font-bold mb-2">Latest Answer:</h2>
-            <div dangerouslySetInnerHTML={{ __html: marked(answer) }} />
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="mt-6 p-4 bg-red-100 text-red-700 rounded-md">
-            {error}
-          </div>
-        )}
+        <div className="overflow-y-auto flex-1">
+          {history.length > 0 ? (
+            <ul className="space-y-2">
+              {[...history].reverse().map((item, index) => (
+                <li
+                  key={index}
+                  className={`p-2 rounded cursor-pointer text-sm ${
+                    activeIndex === index
+                      ? "bg-blue-100 text-blue-700"
+                      : "hover:bg-gray-100"
+                  }`}
+                  onClick={() => {
+                    setAnswer(item.answer);
+                    setQuestion(item.question);
+                    setActiveIndex(index);
+                  }}
+                >
+                  {item.question.slice(0, 30)}...
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-400 text-sm">No conversations yet.</p>
+          )}
+        </div>
       </div>
 
-      {/* Chat history */}
-      {history.length > 0 && (
-        <div className="max-w-2xl w-full bg-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Past Conversations</h2>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center p-8 overflow-y-auto">
+        <div className="w-full max-w-3xl flex flex-col bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-bold text-center mb-6">
+            Ancent Mbithi AI Assistant
+          </h1>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <textarea
+              className="w-full p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              rows="4"
+              placeholder="Ask your question..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              required
+            ></textarea>
             <button
-              onClick={handleClearHistory}
-              className="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded"
+              type="submit"
+              className="self-end bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded"
+              disabled={loading}
             >
-              Clear History
+              {loading ? <LoadingSpinner /> : "Ask"}
             </button>
-          </div>
+          </form>
 
-        <ul className="space-y-4">
-          {[...history].reverse().map((item, index) => {
-            return (
-              <li key={index} className="border-b pb-2">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold">Q: {item.question}</p>
-                  <button 
-                    onClick={() => setIsOpen(!isOpen)} 
-                    className="text-blue-500 text-3xl font-bold focus:outline-none"
-                  >
-                    {isOpen ? "-" : "+"}
-                  </button>
-                </div>
+          {/* Answer Section */}
+          {answer && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-md border">
+              <h2 className="font-bold mb-2">Answer:</h2>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: marked(answer) }}
+              />
+            </div>
+          )}
 
-                {isOpen && (
-                  <div className="text-gray-700 mt-2" dangerouslySetInnerHTML={{ __html: marked(item.answer) }} />
-                )}
-              </li>
-            );
-          })}
-        </ul>
-
-
+          {/* Error */}
+          {error && (
+            <div className="mt-6 p-4 bg-red-100 text-red-700 rounded-md">
+              {error}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
