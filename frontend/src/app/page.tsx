@@ -47,7 +47,7 @@ export default function Home() {
         setError(data.detail || "Something went wrong.");
         toast.error(data.detail || "Something went wrong.");
       }
-    } catch (err) {
+    } catch (error) {
       setError("Server not reachable.");
       toast.error("Server not reachable.");
     }
