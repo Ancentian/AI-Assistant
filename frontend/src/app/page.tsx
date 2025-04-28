@@ -6,18 +6,23 @@ import { marked } from "marked";
 import { toast, Toaster } from "react-hot-toast";
 import SummaryApi from "../../api/index";
 
+interface ChatHistoryItem {
+  question: string;
+  answer: any;
+}
+
 export default function Home() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [history, setHistory] = useState<ChatHistoryItem[]>([]); // Define history type
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("chatHistory"));
+    const stored = localStorage.getItem("chatHistory");
     if (stored) {
-      setHistory(stored);
+      setHistory(JSON.parse(stored));
     }
   }, []);
 
@@ -25,7 +30,7 @@ export default function Home() {
     localStorage.setItem("chatHistory", JSON.stringify(history));
   }, [history]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -41,7 +46,7 @@ export default function Home() {
 
       if (res.ok) {
         setAnswer(data.answer);
-        setHistory((prev) => [...prev, { question, answer: data.answer }]);
+        setHistory((prev) => [...prev, { question, answer: data.answer }]); // Now it's properly typed
         setQuestion("");
       } else {
         setError(data.detail || "Something went wrong.");
@@ -113,7 +118,7 @@ export default function Home() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <textarea
               className="w-full p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              rows="4"
+              rows={4}
               placeholder="Ask your question..."
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
