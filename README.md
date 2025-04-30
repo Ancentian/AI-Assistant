@@ -123,5 +123,6 @@ ai-assistant/
     ├── public/
     └── tailwind.config.js
 ```
-.
+### Hosted frontend
+[text](https://ai-assistant-ooc9-git-v11-ancents-projects.vercel.app/)
 

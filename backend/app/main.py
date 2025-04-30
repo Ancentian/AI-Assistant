@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.schemas import QueryRequest
 from app.services import ask_gemini
 
-app = FastAPI(title="AI Assistant API")
+app = FastAPI(title="Ancent AI Assistant")
 
 app.add_middleware(
     CORSMiddleware,

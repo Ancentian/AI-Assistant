@@ -35,6 +35,8 @@ export default function Home() {
     setLoading(true);
     setError("");
     try {
+      // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/ask`, {
+
       const res = await fetch(SummaryApi.Ask.url, {
         method: SummaryApi.Ask.method,
         headers: {
