@@ -2,15 +2,19 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.schemas import QueryRequest
 from app.services import ask_gemini
+import os
 
 app = FastAPI(title="Ancent AI Assistant")
 
+# Get allowed origins from environment variable or default to localhost
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow the frontend origin
+    allow_origins=allowed_origins,  # Now dynamic based on env var
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.post("/ask")
